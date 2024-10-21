@@ -3,9 +3,7 @@ package chatbot.dsl
 import chatbot.api.ChatContext
 import chatbot.api.Message
 
-typealias MessagePredicate = Bot.(Message) -> Boolean
-
 class Action<T : ChatContext?>(
-    var predicate: MessagePredicate,
+    var predicate: Bot.(Message) -> Boolean,
     val action: MessageProcessor<T>,
 )

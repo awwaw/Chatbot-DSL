@@ -1,14 +1,15 @@
 package chatbot.dsl
 
 import chatbot.api.ChatContext
+import chatbot.api.Message
 
-@BotDSL
 class IntoBuilder : BehaviourBuilder<ChatContext?>() {
     inline fun <reified C : ChatContext> into(configure: BehaviourBuilder<C>.() -> Unit) {
         intoImpl<C>(configure) { context -> context is C }
     }
 
     inline infix fun <reified C : ChatContext> C.into(configure: BehaviourBuilder<C>.() -> Unit) {
+        println("infix into")
         intoImpl<C>(configure) { context -> context == this@into }
     }
 
@@ -20,7 +21,7 @@ class IntoBuilder : BehaviourBuilder<ChatContext?>() {
         builder.configure()
         val tmpActions = builder.copyActions()
         for (handler in tmpActions) {
-            val newPredicate: MessagePredicate =
+            val newPredicate: Bot.(Message) -> Boolean =
                 { message ->
                     handler.predicate(
                         this,
