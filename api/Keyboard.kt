@@ -8,4 +8,11 @@ sealed interface Keyboard {
     ) : Keyboard
 
     data class Button(val text: String)
+
+    fun isEmpty(): Boolean {
+        return when (this) {
+            is Markup -> keyboard.all { row -> row.isEmpty() }
+            Remove -> false
+        }
+    }
 }
