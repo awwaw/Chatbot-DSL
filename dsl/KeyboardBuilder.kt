@@ -2,6 +2,7 @@ package chatbot.dsl
 
 import chatbot.api.Keyboard
 
+@BotDSL
 class RowBuilder {
     private var row: MutableList<Keyboard.Button> = mutableListOf()
 
@@ -18,6 +19,7 @@ class RowBuilder {
     }
 }
 
+@BotDSL
 class KeyboardBuilder {
     var oneTime = false
     var keyboard: MutableList<MutableList<Keyboard.Button>> = mutableListOf()

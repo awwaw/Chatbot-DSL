@@ -2,9 +2,9 @@ package chatbot.dsl
 
 import chatbot.api.*
 
-class BehaviourBuilder<T : ChatContext?> {
+@BotDSL
+open class BehaviourBuilder<T : ChatContext?> {
     var actions: MutableList<Action<T>> = mutableListOf()
-    var contextManager: ChatContextsManager = DefaultChatContextManager()
 
     fun onCommand(command: String, commandProcessor: MessageProcessor<T>) {
         val predicate: MessagePredicate = { message -> message.text.startsWith("/$command") }
@@ -35,41 +35,11 @@ class BehaviourBuilder<T : ChatContext?> {
         actions.add(Action(predicate, messageProcessor))
     }
 
-    inline fun <reified C : ChatContext?> intoImpl(
-        configure: BehaviourBuilder<C>.() -> Unit,
-        crossinline checkChatContext: (ChatContext?) -> Boolean
-    ) {
-        val builder = BehaviourBuilder<C>()
-        builder.configure()
-        builder.contextManager = contextManager
-
-        for (action in builder.actions) {
-            val newPredicate: MessagePredicate =
-                { message ->
-                    action.predicate(
-                        this,
-                        message
-                    ) && checkChatContext(contextManager.getContext(message.chatId))
-                }
-            val newAction = action.action // MessageProcessor<C>
-
-            cast<C, Action<T>>(Action(newPredicate, newAction))?.also { actions.add(it) }
+    fun copyActions(): List<Action<T>> {
+        val newList: MutableList<Action<T>> = mutableListOf()
+        for (action in actions) {
+            newList.add(action)
         }
-    }
-
-    inline fun <F : ChatContext?, reified S : Action<T>> cast(action: Action<F>): S? {
-        if (action is S) {
-            return action
-        }
-        return null
-    }
-
-    inline fun <reified C : ChatContext?> into(configure: BehaviourBuilder<C>.() -> Unit) {
-        intoImpl<C>(configure) { context -> context is C }
-    }
-
-    inline infix fun <reified C : ChatContext?> C.into(configure: BehaviourBuilder<C>.() -> Unit) {
-        println("infix into")
-        intoImpl<C>(configure) { context -> context == this@into }
+        return newList
     }
 }

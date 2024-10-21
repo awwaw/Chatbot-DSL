@@ -5,21 +5,22 @@ import chatbot.api.ChatId
 import chatbot.api.Client
 import chatbot.api.Message
 
+@BotDSL
 class MessageProcessorContext<C : ChatContext?>(
-    val message: Message,
+    var message: Message,
     val client: Client,
     val context: C,
     val setContext: (c: ChatContext?) -> Unit,
 ) {
     fun sendMessage(chatId: ChatId, configureBuilder: MessageBuilder.() -> Unit) {
-        val sender = MessageBuilder(message.text)
+        val sender = MessageBuilder(message)
         sender.configureBuilder()
         if (!sender.isEmpty()) {
             client.sendMessage(
                 chatId,
                 sender.text,
                 sender.keyboard,
-                sender.replyTo
+                sender.replyTo,
             )
         }
     }
@@ -29,7 +30,7 @@ class MessageProcessorContext<C : ChatContext?>(
             chatId,
             text,
             null,
-            null
+            null,
         )
     }
 }

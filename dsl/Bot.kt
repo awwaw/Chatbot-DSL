@@ -2,12 +2,16 @@ package chatbot.dsl
 
 import chatbot.api.*
 
+@DslMarker
+annotation class BotDSL
+
+@BotDSL
 class Bot(
     private val client: Client,
 ) : ChatBot {
-    override var logLevel: LogLevel = LogLevel.INFO
+    override var logLevel: LogLevel = LogLevel.ERROR
     private var messageHandlers: List<Action<ChatContext?>> = mutableListOf()
-    private var contextManager: ChatContextsManager = DefaultChatContextManager()
+    var contextManager: ChatContextsManager = DefaultChatContextManager()
 
     override fun processMessages(message: Message) {
         if (logLevel == LogLevel.INFO) {
@@ -15,20 +19,14 @@ class Bot(
         }
 
         val context = contextManager.getContext(message.chatId)
-        val messageProcessorContext = MessageProcessorContext(message, client, context) {
-            ctx -> contextManager.setContext(message.chatId, ctx)
+        val messageProcessorContext = MessageProcessorContext(message, client, context) { ctx ->
+            contextManager.setContext(message.chatId, ctx)
         }
 
-        for ((idx, action) in messageHandlers.withIndex()) {
-            println(action.predicate)
-            println(message.text)
-            println(contextManager.getContext(message.chatId))
-            println()
-            val predicate = action.predicate(this, message)
-            println("Predicate result is - $predicate")
+        for (action in messageHandlers) {
             if (action.predicate(this, message)) {
                 action.action(messageProcessorContext)
-                println("Handler #$idx")
+                break
             }
         }
     }
@@ -45,13 +43,11 @@ class Bot(
         logLevel = this
     }
 
-    fun behaviour(configure: BehaviourBuilder<ChatContext?>.() -> Unit) {
-        val builder = BehaviourBuilder<ChatContext?>()
+    fun behaviour(configure: IntoBuilder.() -> Unit) {
+        val builder = IntoBuilder()
         builder.configure()
         messageHandlers = builder.actions
     }
-
-
 }
 
 fun chatBot(client: Client, configure: Bot.() -> Unit): ChatBot {

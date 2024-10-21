@@ -1,12 +1,15 @@
 package chatbot.dsl
 
 import chatbot.api.Keyboard
+import chatbot.api.Message
 import chatbot.api.MessageId
 
-class MessageBuilder(var text: String) {
+@BotDSL
+class MessageBuilder(var message: Message) {
+    var text: String = ""
     var replyTo: MessageId? = null
     var keyboard: Keyboard? = null
-    var keyboardPresent: Boolean = false
+    private var keyboardPresent: Boolean = false
 
     fun removeKeyboard() {
         keyboard = Keyboard.Remove
@@ -19,11 +22,12 @@ class MessageBuilder(var text: String) {
         keyboardPresent = keyboardBuilder.isEmpty()
         keyboard = Keyboard.Markup(
             keyboardBuilder.oneTime,
-            keyboardBuilder.keyboard
+            keyboardBuilder.keyboard,
         )
     }
 
     fun isEmpty(): Boolean {
-        return keyboardPresent && text.isEmpty() && replyTo == null
+        return text == "" && replyTo == null &&
+            (keyboard == null || keyboard!!.isEmpty())
     }
 }
